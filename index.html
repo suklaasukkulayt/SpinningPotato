@@ -12,14 +12,8 @@
       --text-dark: #EEEEEE;
       --accent: #BB86FC;
     }
-    [data-theme='light'] {
-      background-color: var(--bg-light);
-      color: var(--text-light);
-    }
-    [data-theme='dark'] {
-      background-color: var(--bg-dark);
-      color: var(--text-dark);
-    }
+    [data-theme='light'] { background-color: var(--bg-light); color: var(--text-light); }
+    [data-theme='dark']  { background-color: var(--bg-dark);  color: var(--text-dark);  }
     html, body {
       margin: 0;
       padding: 0;
@@ -47,10 +41,7 @@
       transform-origin: 50% 50%;
       animation: spin var(--spin-speed, 3s) linear infinite;
     }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
+    @keyframes spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
     #controls {
       margin-top: 20px;
       display: flex;
@@ -68,12 +59,19 @@
       transition: opacity 0.2s;
     }
     button:active { opacity: 0.7; }
-    /* Hide controls in fullscreen */
+    #sliderContainer {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #sliderContainer label { margin-right: 10px; }
+    #speedSlider { width: 300px; accent-color: var(--accent); }
     :fullscreen #controls,
+    :fullscreen #sliderContainer,
     :fullscreen button.fullscreen-btn-hidden {
       display: none;
     }
-    /* Exit full screen cross button */
     #exitBtn {
       position: fixed;
       top: 10px;
@@ -114,43 +112,33 @@
     const fsBtn = document.getElementById('fsBtn');
     const exitBtn = document.getElementById('exitBtn');
     const body = document.body;
-    let exitTimeout;// Speed control (inverted)
-function updateSpeed() {
-  const sliderVal = parseFloat(speedSlider.value);
-  const inverted = (maxVal + minVal) - sliderVal;
-  potato.style.setProperty('--spin-speed', `${inverted}s`);
-}
-speedSlider.addEventListener('input', updateSpeed);
-updateSpeed();
-
-// Theme toggle
-themeBtn.addEventListener('click', () => {
-  const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  body.setAttribute('data-theme', newTheme);
-});
-
-// Fullscreen
-fsBtn.addEventListener('click', () => {
-  document.documentElement.requestFullscreen();
-});
-document.addEventListener('fullscreenchange', () => {
-  // hide controls automatically via CSS
-});
-
-// Show exit button on click in fullscreen
-document.addEventListener('click', () => {
-  if (document.fullscreenElement) {
-    clearTimeout(exitTimeout);
-    exitBtn.style.display = 'flex';
-    exitTimeout = setTimeout(() => exitBtn.style.display = 'none', 5000);
-  }
-});
-
-// Exit fullscreen
-exitBtn.addEventListener('click', () => {
-  document.exitFullscreen();
-});
-
+    let exitTimeout;
+    function updateSpeed() {
+      const val = parseFloat(speedSlider.value);
+      const inverted = (maxVal + minVal) - val;
+      potato.style.setProperty('--spin-speed', `${inverted}s`);
+    }
+    speedSlider.addEventListener('input', updateSpeed);
+    updateSpeed();
+    themeBtn.addEventListener('click', () => {
+      const theme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      body.setAttribute('data-theme', theme);
+    });
+    fsBtn.addEventListener('click', () => { document.documentElement.requestFullscreen(); });
+    document.addEventListener('fullscreenchange', () => {
+      // Hide exit button immediately when exiting fullscreen
+      if (!document.fullscreenElement) {
+        exitBtn.style.display = 'none';
+      }
+    });
+    document.addEventListener('click', () => {
+      if (document.fullscreenElement) {
+        clearTimeout(exitTimeout);
+        exitBtn.style.display = 'flex';
+        exitTimeout = setTimeout(() => exitBtn.style.display = 'none', 5000);
+      }
+    });
+    exitBtn.addEventListener('click', () => { document.exitFullscreen(); });
   </script>
 </body>
 </html>
