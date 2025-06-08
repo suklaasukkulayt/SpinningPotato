@@ -16,10 +16,29 @@
     #toolbar label{display:flex;align-items:center}
     #toolbar input[type=range]{width:100px;accent-color:var(--accent);background:#ccc;height:4px;border-radius:2px}
     #toolbar input[type=range]::-webkit-slider-thumb{cursor:pointer}
-    .container{position:relative;width:300px;height:300px;z-index:2}
+    .container{
+      position:relative;
+      width:300px;
+      height:300px;
+      z-index:2;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      /* Allow potato to fully show */
+      overflow:visible;
+    }
     #potato{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:250px;animation:spin var(--spin-speed,3s) linear infinite}
     @keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
-    .flip-clock{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:3}
+    .flip-clock {
+      display: none;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+      z-index: 3;
+    }
     .flip-clock .digit{position:relative;width:40px;height:50px;perspective:400px;font-family:'Courier New',monospace}
     .flip-clock .card{position:absolute;width:100%;height:50%;overflow:hidden;backface-visibility:hidden}
     .flip-clock .card.top{top:0;border-bottom:1px solid #222}
@@ -60,7 +79,7 @@
       <div class="digit" data-digit="0"></div>
     </div>
   </div>
-  <img id="dvdLogo" alt="DVD Logo"/>
+  <img id="dvdLogo" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg" alt="DVD Logo"/>
   <p id="instructions">Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere and clicking the ✕ button.</p>
   <button id="exitBtn">✕</button>
   <script>
@@ -85,7 +104,11 @@
     let last='';function updClock(){const n=new Date(),h=('0'+n.getHours()).slice(-2),m=('0'+n.getMinutes()).slice(-2),s=('0'+n.getSeconds()).slice(-2),str=h+m+s;for(let i=0;i<str.length;i++){const el=flipClock.children[i],newD=str[i],oldD=last[i]||newD;if(newD!==oldD){const top=el.querySelector('.card.top .face'),bot=el.querySelector('.card.bottom .face');top.textContent=oldD;bot.textContent=newD;el.querySelector('.card.top').classList.add('flip');setTimeout(()=>{el.querySelector('.card.top').classList.remove('flip');el.querySelector('.card.bottom').classList.add('flip');},250);setTimeout(()=>{el.querySelector('.card.bottom').classList.remove('flip');},500);} }last=str;}
     clkBtn.onclick=()=>{if(flipClock.style.display!=='flex'){flipClock.style.display='flex';updClock();clockI=setInterval(updClock,1000);}else{clearInterval(clockI);flipClock.style.display='none';}};
     // DVD Logo
-    dvdIn.onchange=e=>{const f=e.target.files[0];if(f)dvdLogo.src=URL.createObjectURL(f);};dvdBtn.onclick=()=>{if(dvdLogo.style.display!=='block'){d={x:0,y:0,vx:3,vy:3,hue:0};dvdLogo.style.display='block';dvdI=setInterval(()=>{const w=innerWidth,h=innerHeight;d.x+=d.vx;d.y+=d.vy;if(d.x<0||d.x+dvdLogo.width>w){d.vx*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}if(d.y<0||d.y+dvdLogo.height>h){d.vy*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}dvdLogo.style.left=d.x+'px';dvdLogo.style.top=d.y+'px';},16);}else{clearInterval(dvdI);dvdLogo.style.display='none';}};
+    dvdIn.onchange = e => {
+      const f = e.target.files[0];
+      if (f) dvdLogo.src = URL.createObjectURL(f);
+      else dvdLogo.src = 'https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg';
+    };if(f)dvdLogo.src=URL.createObjectURL(f);};dvdBtn.onclick=()=>{if(dvdLogo.style.display!=='block'){d={x:0,y:0,vx:3,vy:3,hue:0};dvdLogo.style.display='block';dvdI=setInterval(()=>{const w=innerWidth,h=innerHeight;d.x+=d.vx;d.y+=d.vy;if(d.x<0||d.x+dvdLogo.width>w){d.vx*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}if(d.y<0||d.y+dvdLogo.height>h){d.vy*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}dvdLogo.style.left=d.x+'px';dvdLogo.style.top=d.y+'px';},16);}else{clearInterval(dvdI);dvdLogo.style.display='none';}};
     // Particles
     partBtn.onclick=()=>{enabled=!enabled;partBtn.textContent=enabled?'Particles On':'Particles Off';};
     // Exit fullscreen
