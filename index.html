@@ -1,142 +1,99 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spinning Potato</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-    :root {
-      --bg-light: #ffffff; --bg-dark: #121212;
-      --text-light: #000000; --text-dark: #EEEEEE;
-      --accent: #BB86FC;
-    }
-    [data-theme='light'] { background-color: var(--bg-light); color: var(--text-light); }
-    [data-theme='dark']  { background-color: var(--bg-dark);  color: var(--text-dark);  }
-    html, body {
-      margin: 0; padding: 0; height: 100%; font-family: 'Roboto', sans-serif;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      transition: background-color .3s, color .3s;
-      background-size: cover; background-position: center;
-      overflow: hidden;
-    }
-    canvas#particleCanvas {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: 0;
-    }
-    .container {
-      width: 300px; height: 300px; position: relative; z-index: 1;
-      display: flex; justify-content: center; align-items: center; overflow: hidden;
-    }
-    #potato {
-      font-size: 250px; line-height: 1; transform-origin: 50% 50%;
-      animation: spin var(--spin-speed, 3s) linear infinite;
-      z-index: 2;
-    }
-    @keyframes spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
-    #controls { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px; z-index: 2; }
-    button, input[type=file] {
-      padding: 6px 10px; font-size: 14px; background: var(--accent);
-      color: #fff; border: none; border-radius: 4px; cursor: pointer; z-index:2;
-    }
-    input[type=file] { background: transparent; color: inherit; }
-    #sliderContainer { display: flex; align-items: center; gap: 8px; margin-top: 10px; z-index:2; }
-    #speedSlider { width: 200px; accent-color: var(--accent); }
-    #flipClock { margin-top: 16px; font-size: 24px; letter-spacing: 2px; display: none; z-index:2; }
-    #dvdLogo { position: absolute; width: 60px; height: 60px; display: none; z-index:2; }
-    p#instructions { margin-top: 16px; font-size: 12px; opacity: 0.8; text-align: center; z-index:2; }
-    :fullscreen #controls, :fullscreen #sliderContainer { display: none; }
-    #exitBtn { position: fixed; top: 10px; right: 10px; width: 32px; height: 32px;
-      font-size: 24px; background: var(--accent); color: #fff; border: none;
-      border-radius: 50%; display: none; align-items: center; justify-content: center;
-      cursor: pointer; z-index:2;
-    }
+    :root { --bg-light:#fff; --bg-dark:#121212; --text-light:#000; --text-dark:#eee; --accent:#BB86FC; }
+    [data-theme='light']{background:var(--bg-light);color:var(--text-light)}
+    [data-theme='dark'] {background:var(--bg-dark);color:var(--text-dark)}
+    html,body {margin:0;padding:0;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;transition:.3s;}
+    canvas#particleCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+    #toolbar{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;gap:6px;background:rgba(0,0,0,0.4);padding:8px;border-radius:8px;z-index:5}
+    #toolbar *{font-size:12px;padding:6px 8px;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
+    #toolbar input[type=file]{padding:4px}
+    #toolbar label{display:flex;align-items:center}
+    #toolbar input[type=range]{width:100px;accent-color:var(--accent)}
+    .container{position:relative;width:300px;height:300px;z-index:2;}
+    #potato{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:250px;animation:spin var(--spin-speed,3s) linear infinite;}
+    @keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
+    /* Flip clock styles */
+    .flip-clock{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:3}
+    .flip-clock .digit{position:relative;width:40px;height:50px;perspective:400px;font-family:'Courier New',monospace}
+    .flip-clock .card{position:absolute;width:100%;height:50%;overflow:hidden;backface-visibility:hidden}
+    .flip-clock .card.top{top:0;border-bottom:1px solid #222}
+    .flip-clock .card.bottom{bottom:0;border-top:1px solid #222}
+    .flip-clock .card .face{position:absolute;width:100%;height:200%;background:#000;color:#0ff;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 2px 6px rgba(0,0,0,0.5)}
+    .flip-clock .card.top .face{transform-origin:bottom;padding-top:0}
+    .flip-clock .card.bottom .face{transform-origin:top;top:-50%}
+    .flip-clock .card.top.flip .face{animation:flipTop .5s ease-in forwards}
+    .flip-clock .card.bottom.flip .face{animation:flipBottom .5s ease-out forwards}
+    @keyframes flipTop{0%{transform:rotateX(0deg)}100%{transform:rotateX(-90deg)}}
+    @keyframes flipBottom{0%{transform:rotateX(90deg)}100%{transform:rotateX(0deg)}}
+    #dvdLogo{position:fixed;width:60px;height:60px;display:none;z-index:2}
+    #flipClock{display:none}
+    #instructions{position:fixed;bottom:10px;width:100%;text-align:center;font-size:12px;color:rgba(255,255,255,0.8);z-index:3}
+    #exitBtn{position:fixed;top:10px;right:10px;width:32px;height:32px;font-size:24px;border:none;border-radius:50%;background:var(--accent);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:5}
+    :fullscreen #toolbar,:fullscreen #exitBtn.hidden{display:none}
   </style>
 </head>
 <body data-theme="dark">
   <canvas id="particleCanvas"></canvas>
-  <div id="controls">
-    <button id="themeBtn">Toggle Theme</button>
-    <button id="fsBtn">Enter Fullscreen</button>
-    <input type="file" id="bgInput" accept="image/*">
-    <button id="removeBgBtn">Remove Background</button>
-    <button id="toggleClockBtn">Toggle Clock</button>
-    <input type="file" id="dvdInput" accept="image/*">
-    <button id="toggleDvdBtn">Toggle DVD Logo</button>
-    <div id="sliderContainer">
-      <label for="speedSlider">Rotation Speed</label>
-      <input type="range" id="speedSlider" min="0.5" max="10" step="0.1" value="3">
-    </div>
-    <button id="toggleParticlesBtn">Toggle Particles</button>
+  <div id="toolbar">
+    <button id="themeBtn">Theme</button>
+    <button id="fsBtn">Fullscreen</button>
+    <label><input type="file" id="bgInput" accept="image/*"/>BG</label>
+    <button id="removeBgBtn">Remove BG</button>
+    <button id="toggleClockBtn">Clock</button>
+    <label><input type="file" id="dvdInput" accept="image/*"/>DVD</label>
+    <button id="toggleDvdBtn">DVD</button>
+    <label>Speed<input type="range" id="speedSlider" min="0.5" max="10" step="0.1" value="3"/></label>
+    <button id="toggleParticlesBtn">Particles On</button>
   </div>
   <div class="container">
     <span id="potato">🥔</span>
-    <div id="flipClock"></div>
-    <img id="dvdLogo" alt="DVD Logo">
+    <div class="flip-clock" id="flipClock">
+      <div class="digit" data-digit="0"></div>
+      <div class="digit" data-digit="0"></div>
+      <div class="digit" data-digit="0"></div>
+      <div class="digit" data-digit="0"></div>
+    </div>
   </div>
-  <p id="instructions">Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere on screen and clicking the X button on the top-right corner.</p>
+  <img id="dvdLogo" alt="DVD Logo"/>  
+  <p id="instructions">Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere and clicking the ✕ button.</p>
   <button id="exitBtn">✕</button>
   <script>
-    // Particle effect setup
-    const canvas = document.getElementById('particleCanvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [], particlesEnabled = true;
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    function initParticles() { particles = []; for(let i=0;i<200;i++){ particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*3+2, speed: Math.random()*1+0.5 }); } }
-    function drawParticles(){ ctx.clearRect(0,0,canvas.width,canvas.height); if(particlesEnabled){ ctx.fillStyle='rgba(255,255,255,0.5)'; particles.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill(); p.y+=p.speed; if(p.y>canvas.height) p.y=0; }); } requestAnimationFrame(drawParticles);}  
-    initParticles(); drawParticles();// Controls
-const body = document.body;
-const potato = document.getElementById('potato');
-const speedSlider = document.getElementById('speedSlider');
-const [minVal,maxVal] = [parseFloat(speedSlider.min), parseFloat(speedSlider.max)];
-const themeBtn = document.getElementById('themeBtn');
-const fsBtn = document.getElementById('fsBtn');
-const bgInput = document.getElementById('bgInput');
-const removeBgBtn = document.getElementById('removeBgBtn');
-const toggleClockBtn = document.getElementById('toggleClockBtn');
-const dvdInput = document.getElementById('dvdInput');
-const toggleDvdBtn = document.getElementById('toggleDvdBtn');
-const toggleParticlesBtn = document.getElementById('toggleParticlesBtn');
-const flipClock = document.getElementById('flipClock');
-const dvdLogo = document.getElementById('dvdLogo');
-const exitBtn = document.getElementById('exitBtn');
-let dvd={x:0,y:0,vx:2,vy:2,hue:0}, clockInterval, dvdInterval, exitTimeout;
-
-// Rotation speed
-function updateSpeed(){ const v=parseFloat(speedSlider.value), inv=(maxVal+minVal)-v; potato.style.setProperty('--spin-speed',`${inv}s`);}    
-speedSlider.addEventListener('input',updateSpeed); updateSpeed();
-
-// Theme toggle
-themeBtn.onclick = ()=> body.setAttribute('data-theme', body.getAttribute('data-theme')==='dark'?'light':'dark');
-
-// Fullscreen
-fsBtn.onclick = ()=> document.documentElement.requestFullscreen();
-
-// Background upload
-bgInput.onchange = e=>{ const f=e.target.files[0]; if(f) body.style.backgroundImage=`url('${URL.createObjectURL(f)}')`; };
-removeBgBtn.onclick = ()=>{ body.style.backgroundImage=''; bgInput.value=''; };
-
-// Flip clock
-toggleClockBtn.onclick = ()=>{ if(flipClock.style.display==='none') startClock(); else {clearInterval(clockInterval); flipClock.style.display='none';}};
-function startClock(){ updateClock(); clockInterval=setInterval(updateClock,1000); flipClock.style.display='block'; }
-function updateClock(){ const d=new Date(), pad=n=>n.toString().padStart(2,'0'); flipClock.textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
-
-// DVD Logo bounce
-dvdInput.onchange = e=>{ const f=e.target.files[0]; if(f) dvdLogo.src=URL.createObjectURL(f); };
-toggleDvdBtn.onclick = ()=>{ if(dvdLogo.style.display==='none') startDvd(); else stopDvd(); };
-function startDvd(){ dvd.x=dvd.y=0; dvd.vx=dvd.vy=2; dvd.hue=0; dvdLogo.style.display='block'; dvdInterval=setInterval(()=>{ const rect=document.querySelector('.container').getBoundingClientRect(); dvd.x+=dvd.vx; dvd.y+=dvd.vy; if(dvd.x<0||dvd.x+dvdLogo.width>rect.width){ dvd.vx*=-1; changeDvdHue(); } if(dvd.y<0||dvd.y+dvdLogo.height>rect.height){ dvd.vy*=-1; changeDvdHue(); } dvdLogo.style.left=dvd.x+'px'; dvdLogo.style.top=dvd.y+'px'; },16);}    
-function stopDvd(){ clearInterval(dvdInterval); dvdLogo.style.display='none'; }
-function changeDvdHue(){ dvd.hue=(dvd.hue+60)%360; dvdLogo.style.filter=`hue-rotate(${dvd.hue}deg)`; }
-
-// Toggle particles
-toggleParticlesBtn.onclick = ()=>{ particlesEnabled = !particlesEnabled; toggleParticlesBtn.textContent = particlesEnabled ? 'Particles On' : 'Particles Off'; };
-
-// Fullscreen exit behavior
-document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement){ clearInterval(clockInterval); flipClock.style.display='none'; stopDvd(); exitBtn.style.display='none'; }});
-document.addEventListener('click',()=>{ if(document.fullscreenElement){ clearTimeout(exitTimeout); exitBtn.style.display='flex'; exitTimeout=setTimeout(()=>exitBtn.style.display='none',5000); }});
-exitBtn.onclick = ()=> document.exitFullscreen();
-
+    // Particles
+    const canvas=document.getElementById('particleCanvas'),ctx=canvas.getContext('2d');let parts=[],enabled=true;
+    function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}window.addEventListener('resize',resize);resize();
+    function init(){parts=[];for(let i=0;i<150;i++)parts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*3+2,s:Math.random()+0.5});}
+    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);if(enabled){ctx.fillStyle='rgba(255,255,255,0.5)';parts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,2*Math.PI);ctx.fill();p.y+=p.s;if(p.y>canvas.height)p.y=0;});}requestAnimationFrame(draw);}init();draw();
+    // Elements
+    const body=document.body,themeBtn=document.getElementById('themeBtn'),fsBtn=document.getElementById('fsBtn'),bgIn=document.getElementById('bgInput'),remBg=document.getElementById('removeBgBtn'),clkBtn=document.getElementById('toggleClockBtn'),dvdIn=document.getElementById('dvdInput'),dvdBtn=document.getElementById('toggleDvdBtn'),partBtn=document.getElementById('toggleParticlesBtn'),slider=document.getElementById('speedSlider'),potato=document.getElementById('potato'),exitBtn=document.getElementById('exitBtn'),flipClock=document.getElementById('flipClock'),dvdLogo=document.getElementById('dvdLogo');
+    let clockI,dvdI,d={x:0,y:0,vx:3,vy:3,hue:0},exitT;
+    // Speed
+    const [minV,maxV]=[+slider.min,+slider.max];slider.oninput=()=>{const v=+slider.value,i=(maxV+minV)-v;potato.style.setProperty('--spin-speed',i+'s');};slider.oninput();
+    // Theme
+    themeBtn.onclick=()=>body.setAttribute('data-theme',body.getAttribute('data-theme')==='dark'?'light':'dark');
+    // Fullscreen
+    fsBtn.onclick=()=>document.documentElement.requestFullscreen();
+    // BG
+    bgIn.onchange=e=>{const f=e.target.files[0];if(f)body.style.backgroundImage=`url('${URL.createObjectURL(f)}')`;};remBg.onclick=()=>{body.style.backgroundImage='';bgIn.value='';};
+    // Clock flip animation
+    function createDigit(el){el.innerHTML='<div class="card top"><div class="face"></div></div><div class="card bottom"><div class="face"></div></div>';} 
+    Array.from(flipClock.children).forEach(createDigit);
+    let lastTime='';
+    function updateClock(){const now=new Date(),h=String(now.getHours()).padStart(2,'0'),m=String(now.getMinutes()).padStart(2,'0'),s=String(now.getSeconds()).padStart(2,'0'),str=h+m+s; for(let i=0;i<str.length;i++){const digitEl=flipClock.children[i],newD=str[i],oldD=lastTime[i]; if(newD!==oldD){const top= digitEl.querySelector('.card.top .face'),bottom=digitEl.querySelector('.card.bottom .face'); top.textContent=oldD||newD; bottom.textContent=newD; digitEl.querySelector('.card.top').classList.add('flip'); setTimeout(()=>{digitEl.querySelector('.card.top').classList.remove('flip');digitEl.querySelector('.card.bottom').classList.add('flip');},250); setTimeout(()=>{digitEl.querySelector('.card.bottom').classList.remove('flip');},500);} } lastTime=str; }
+    clkBtn.onclick=()=>{ if(flipClock.style.display!=='flex'){flipClock.style.display='flex';updateClock();clockI=setInterval(updateClock,1000);} else{clearInterval(clockI);flipClock.style.display='none';}};
+    // DVD
+    dvdIn.onchange=e=>{const f=e.target.files[0];if(f)dvdLogo.src=URL.createObjectURL(f);};dvdBtn.onclick=()=>{if(dvdLogo.style.display!=='block'){d={x:0,y:0,vx:3,vy:3,hue:0};dvdLogo.style.display='block';dvdI=setInterval(()=>{const w=innerWidth,h=innerHeight;d.x+=d.vx;d.y+=d.vy;if(d.x<0||d.x+dvdLogo.width> w){d.vx*=-1;d.hue=(d.hue+60)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;} if(d.y<0||d.y+dvdLogo.height>h){d.vy*=-1;d.hue=(d.hue+60)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}dvdLogo.style.left=d.x+'px';dvdLogo.style.top=d.y+'px';},16);} else{clearInterval(dvdI);dvdLogo.style.display='none';}};
+    // Particles
+    partBtn.onclick=()=>{enabled=!enabled;partBtn.textContent=enabled?'Particles On':'Particles Off';};
+    // Exit
+    document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement){clearInterval(clockI);flipClock.style.display='none';clearInterval(dvdI);dvdLogo.style.display='none';exitBtn.style.display='none';}});
+    document.addEventListener('click',()=>{if(document.fullscreenElement){clearTimeout(exitT);exitBtn.style.display='flex';exitT=setTimeout(()=>exitBtn.style.display='none',5000);}});
+    exitBtn.onclick=()=>document.exitFullscreen();
   </script>
 </body>
 </html>
