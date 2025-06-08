@@ -1,49 +1,29 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spinning Potato</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
     :root { --bg-light:#fff; --bg-dark:#121212; --text-light:#000; --text-dark:#eee; --accent:#BB86FC; }
     [data-theme='light']{background:var(--bg-light);color:var(--text-light)}
     [data-theme='dark'] {background:var(--bg-dark);color:var(--text-dark)}
-    html,body{margin:0;padding:0;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;transition:.3s; background-size:cover;background-position:center;background-attachment:fixed;}
+    html,body{margin:0;padding:0;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;transition:.3s;background-size:cover;background-position:center;background-attachment:fixed;}
     canvas#particleCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
     #toolbar{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;gap:6px;background:rgba(0,0,0,0.4);padding:8px;border-radius:8px;z-index:5}
     #toolbar *{font-size:12px;padding:6px 8px;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
     #toolbar input[type=file]{padding:4px;background:var(--accent)}
     #toolbar label{display:flex;align-items:center}
     #toolbar input[type=range]{width:100px;accent-color:var(--accent);background:#ccc;height:4px;border-radius:2px}
-    #toolbar input[type=range]::-webkit-slider-thumb{cursor:pointer}
-    .container{
-      position:relative;
-      width:300px;
-      height:300px;
-      z-index:2;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      /* Allow potato to fully show */
-      overflow:visible;
-    }
+    .container{position:relative;width:300px;height:300px;z-index:2;overflow:visible;display:flex;justify-content:center;align-items:center;}
     #potato{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:250px;animation:spin var(--spin-speed,3s) linear infinite}
     @keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
-    .flip-clock {
-      display: none;
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 4px;
-      z-index: 3;
-    }
-    .flip-clock .digit{position:relative;width:40px;height:50px;perspective:400px;font-family:'Courier New',monospace}
+    .flip-clock{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:none;flex-direction:row;gap:4px;z-index:3}
+    .flip-clock .digit{position:relative;width:40px;height:50px;perspective:400px;}
     .flip-clock .card{position:absolute;width:100%;height:50%;overflow:hidden;backface-visibility:hidden}
     .flip-clock .card.top{top:0;border-bottom:1px solid #222}
     .flip-clock .card.bottom{bottom:0;border-top:1px solid #222}
-    .flip-clock .face{position:absolute;width:100%;height:200%;background:#000;color:#0ff;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 2px 6px rgba(0,0,0,0.5)}
+    .flip-clock .face{position:absolute;width:100%;height:200%;background:#000;color:#0ff;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-size:28px;box-shadow:0 2px 6px rgba(0,0,0,0.5)}
     .flip-clock .card.top .face{transform-origin:bottom}
     .flip-clock .card.bottom .face{transform-origin:top;top:-50%}
     .flip-clock .card.top.flip .face{animation:flipTop .5s ease-in forwards}
@@ -53,8 +33,7 @@
     #dvdLogo{position:fixed;width:60px;height:60px;display:none;z-index:2}
     #instructions{position:fixed;bottom:10px;width:100%;text-align:center;font-size:12px;color:rgba(255,255,255,0.8);z-index:3;pointer-events:none}
     #exitBtn{position:fixed;top:10px;right:10px;width:32px;height:32px;font-size:24px;border:none;border-radius:50%;background:var(--accent);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:5}
-    :fullscreen #toolbar, :fullscreen #exitBtn.hidden{display:none}
-      :fullscreen #instructions { display: none; }
+    :fullscreen #toolbar, :fullscreen #instructions{display:none}
   </style>
 </head>
 <body data-theme="dark">
@@ -73,45 +52,52 @@
   <div class="container">
     <span id="potato">🥔</span>
     <div class="flip-clock" id="flipClock">
-      <div class="digit" data-digit="0"></div>
-      <div class="digit" data-digit="0"></div>
-      <div class="digit" data-digit="0"></div>
-      <div class="digit" data-digit="0"></div>
+      <div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div>
     </div>
   </div>
   <img id="dvdLogo" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg" alt="DVD Logo"/>
   <p id="instructions">Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere and clicking the ✕ button.</p>
   <button id="exitBtn">✕</button>
   <script>
-    // Particles
+    // Particle
     const canvas=document.getElementById('particleCanvas'),ctx=canvas.getContext('2d');let parts=[],enabled=true;
     function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}window.addEventListener('resize',resize);resize();
     function init(){parts=[];for(let i=0;i<150;i++)parts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*3+2,s:Math.random()+0.5});}
-    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);if(enabled){ctx.fillStyle=document.body.getAttribute('data-theme')==='dark'?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)';parts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,2*Math.PI);ctx.fill();p.y+=p.s;if(p.y>canvas.height)p.y=0;});}requestAnimationFrame(draw);}init();draw();
-    // Elements
-    const body=document.body,themeBtn=document.getElementById('themeBtn'),fsBtn=document.getElementById('fsBtn'),bgIn=document.getElementById('bgInput'),remBg=document.getElementById('removeBgBtn'),clkBtn=document.getElementById('toggleClockBtn'),dvdIn=document.getElementById('dvdInput'),dvdBtn=document.getElementById('toggleDvdBtn'),partBtn=document.getElementById('toggleParticlesBtn'),slider=document.getElementById('speedSlider'),potato=document.getElementById('potato'),exitBtn=document.getElementById('exitBtn'),flipClock=document.getElementById('flipClock'),dvdLogo=document.getElementById('dvdLogo');
+    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);if(enabled){ctx.fillStyle=body.getAttribute('data-theme')==='dark'?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)';parts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,2*Math.PI);ctx.fill();p.y+=p.s;if(p.y>canvas.height)p.y=0;});}requestAnimationFrame(draw);}init();draw();
+    // Controls
+    const body=document.body,
+          themeBtn=document.getElementById('themeBtn'),
+          fsBtn=document.getElementById('fsBtn'),
+          bgIn=document.getElementById('bgInput'),
+          remBg=document.getElementById('removeBgBtn'),
+          clkBtn=document.getElementById('toggleClockBtn'),
+          dvdIn=document.getElementById('dvdInput'),
+          dvdBtn=document.getElementById('toggleDvdBtn'),
+          partBtn=document.getElementById('toggleParticlesBtn'),
+          slider=document.getElementById('speedSlider'),
+          potato=document.getElementById('potato'),
+          exitBtn=document.getElementById('exitBtn'),
+          flipClock=document.getElementById('flipClock'),
+          dvdLogo=document.getElementById('dvdLogo'),
+          digits=flipClock.querySelectorAll('.digit');
     let clockI,dvdI,d={x:0,y:0,vx:3,vy:3,hue:0},exitT;
-    // Speed
-    const [minV,maxV]=[+slider.min,+slider.max];slider.oninput=()=>{const v=+slider.value,i=(maxV+minV)-v;potato.style.setProperty('--spin-speed',i+'s');slider.style.background=`linear-gradient(to right, var(--accent) 0%, var(--accent) ${((v-minV)/(maxV-minV))*100}%, #ccc ${((v-minV)/(maxV-minV))*100}%, #ccc 100%)`;};slider.oninput();
+    // Rotation Speed
+    const [minV,maxV]=[+slider.min,+slider.max];slider.oninput=()=>{const v=+slider.value,i=(maxV+minV)-v;potato.style.setProperty('--spin-speed',i+'s');slider.style.background=`linear-gradient(to right,var(--accent) 0%,var(--accent) ${((v-minV)/(maxV-minV))*100}%,#ccc ${((v-minV)/(maxV-minV))*100}%,#ccc)`};slider.oninput();
     // Theme
     themeBtn.onclick=()=>body.setAttribute('data-theme',body.getAttribute('data-theme')==='dark'?'light':'dark');
     // Fullscreen
     fsBtn.onclick=()=>document.documentElement.requestFullscreen();
-    // BG
+    // Background
     bgIn.onchange=e=>{const f=e.target.files[0];if(f)body.style.backgroundImage=`url('${URL.createObjectURL(f)}')`;};remBg.onclick=()=>{body.style.backgroundImage='';bgIn.value='';};
-    // Clock
-    Array.from(flipClock.children).forEach(el=>{el.innerHTML='<div class="card top"><div class="face"></div></div><div class="card bottom"><div class="face"></div></div>'});
-    let last='';function updClock(){const n=new Date(),h=('0'+n.getHours()).slice(-2),m=('0'+n.getMinutes()).slice(-2),s=('0'+n.getSeconds()).slice(-2),str=h+m+s;for(let i=0;i<str.length;i++){const el=flipClock.children[i],newD=str[i],oldD=last[i]||newD;if(newD!==oldD){const top=el.querySelector('.card.top .face'),bot=el.querySelector('.card.bottom .face');top.textContent=oldD;bot.textContent=newD;el.querySelector('.card.top').classList.add('flip');setTimeout(()=>{el.querySelector('.card.top').classList.remove('flip');el.querySelector('.card.bottom').classList.add('flip');},250);setTimeout(()=>{el.querySelector('.card.bottom').classList.remove('flip');},500);} }last=str;}
-    clkBtn.onclick=()=>{if(flipClock.style.display!=='flex'){flipClock.style.display='flex';updClock();clockI=setInterval(updClock,1000);}else{clearInterval(clockI);flipClock.style.display='none';}};
+    // Flip Clock setup
+    digits.forEach(dig=>{dig.innerHTML='<div class="card top"><div class="face"></div></div><div class="card bottom"><div class="face"></div></div>'});
+    let lastTime=''; function updateClock(){const now=new Date(),h=`${now.getHours()}`.padStart(2,'0'),m=`${now.getMinutes()}`.padStart(2,'0'),s=`${now.getSeconds()}`.padStart(2,'0'),str=h+m+s;digits.forEach((dig,i)=>{const newD=str[i],oldD=lastTime[i]||newD; if(newD!==oldD){const top=dig.querySelector('.card.top .face'),bot=dig.querySelector('.card.bottom .face');top.textContent=oldD;bot.textContent=newD;dig.querySelector('.card.top').classList.add('flip');setTimeout(()=>{dig.querySelector('.card.top').classList.remove('flip');dig.querySelector('.card.bottom').classList.add('flip');},250);setTimeout(()=>{dig.querySelector('.card.bottom').classList.remove('flip');},500);} });lastTime=str;}
+    clkBtn.onclick=()=>{if(flipClock.style.display!=='flex'){flipClock.style.display='flex';updateClock();clockI=setInterval(updateClock,1000);}else{clearInterval(clockI);flipClock.style.display='none';}};
     // DVD Logo
-    dvdIn.onchange = e => {
-      const f = e.target.files[0];
-      if (f) dvdLogo.src = URL.createObjectURL(f);
-      else dvdLogo.src = 'https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg';
-    };if(f)dvdLogo.src=URL.createObjectURL(f);};dvdBtn.onclick=()=>{if(dvdLogo.style.display!=='block'){d={x:0,y:0,vx:3,vy:3,hue:0};dvdLogo.style.display='block';dvdI=setInterval(()=>{const w=innerWidth,h=innerHeight;d.x+=d.vx;d.y+=d.vy;if(d.x<0||d.x+dvdLogo.width>w){d.vx*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}if(d.y<0||d.y+dvdLogo.height>h){d.vy*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}dvdLogo.style.left=d.x+'px';dvdLogo.style.top=d.y+'px';},16);}else{clearInterval(dvdI);dvdLogo.style.display='none';}};
+    dvdIn.onchange=e=>{const f=e.target.files[0];if(f)dvdLogo.src=URL.createObjectURL(f);else dvdLogo.src='https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg';};dvdBtn.onclick=()=>{if(dvdLogo.style.display!=='block'){d={x:0,y:0,vx:3,vy:3,hue:0};dvdLogo.style.display='block';dvdI=setInterval(()=>{const w=innerWidth,h=innerHeight;d.x+=d.vx;d.y+=d.vy;if(d.x<0||d.x+dvdLogo.width>w){d.vx*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}if(d.y<0||d.y+dvdLogo.height>h){d.vy*=-1;d.hue=(d.hue+90)%360;dvdLogo.style.filter=`hue-rotate(${d.hue}deg)`;}dvdLogo.style.left=d.x+'px';dvdLogo.style.top=d.y+'px';},16);}else{clearInterval(dvdI);dvdLogo.style.display='none';}};
     // Particles
     partBtn.onclick=()=>{enabled=!enabled;partBtn.textContent=enabled?'Particles On':'Particles Off';};
-    // Exit fullscreen
+    // Exit Fullscreen
     document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement){clearInterval(clockI);flipClock.style.display='none';clearInterval(dvdI);dvdLogo.style.display='none';exitBtn.style.display='none';}});
     document.addEventListener('click',()=>{if(document.fullscreenElement){clearTimeout(exitT);exitBtn.style.display='flex';exitT=setTimeout(()=>exitBtn.style.display='none',5000);}});
     exitBtn.onclick=()=>document.exitFullscreen();
