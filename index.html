@@ -1,397 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spinning Potato</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-    :root {
-      --bg-light: #fff;
-      --bg-dark:  #121212;
-      --text-light:#000;
-      --text-dark: #eee;
-      --accent:   #BB86FC;
+    :root { --bg-light:#fff; --bg-dark:#121212; --text-light:#000; --text-dark:#eee; --accent:#BB86FC; }
+    [data-theme='light']{background:var(--bg-light); color:var(--text-light);}
+    [data-theme='dark'] {background:var(--bg-dark);  color:var(--text-dark); }
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Roboto',sans-serif; transition:.3s;
+      background-size:cover; background-position:center; background-attachment:fixed;
     }
-    [data-theme='light'] { background: var(--bg-light); color: var(--text-light); }
-    [data-theme='dark']  { background: var(--bg-dark);  color: var(--text-dark);  }
-
-    html, body {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Roboto', sans-serif;
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      transition: background 0.3s, color 0.3s;
+    canvas#particleCanvas{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;}
+    #toolbar{position:fixed; top:12px; left:50%; transform:translateX(-50%);
+      display:flex; flex-wrap:wrap; gap:6px;
+      background:rgba(0,0,0,0.5); padding:8px; border-radius:12px; z-index:10;
     }
-
-    /* Particle canvas */
-    canvas#particleCanvas {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none; z-index: 1;
+    #toolbar > *{ font-size:12px; padding:8px 10px;
+      background:var(--accent); color:#fff; border:none; border-radius:12px;
+      cursor:pointer; transition:background .2s;
     }
-
-    /* Toolbar */
-    #toolbar {
-      position: fixed; top: 12px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; flex-wrap: wrap; gap: 6px;
-      background: rgba(0,0,0,0.5); padding: 8px;
-      border-radius: 12px; z-index: 10;
+    #toolbar > *:hover{background:#A555D0;}
+    .file-btn{position:relative; overflow:hidden;}
+    .file-btn input[type=file]{position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;}
+    #toolbar input[type=range]{width:100px; appearance:none; height:4px; background:#ccc; border-radius:2px; cursor:pointer;}
+    #toolbar input[type=range]::-webkit-slider-thumb{appearance:none; width:12px; height:12px; border-radius:50%; background:var(--accent); margin-top:-4px; cursor:pointer;}
+    #container{position:relative; width:300px; height:300px; overflow:visible; z-index:5;
+      display:flex; align-items:center; justify-content:center;
     }
-    #toolbar > * {
-      font-size: 12px; padding: 8px 10px;
-      background: var(--accent); color: #fff;
-      border: none; border-radius: 12px; cursor: pointer;
-      transition: background 0.2s;
+    #potato{font-size:250px; animation:spin var(--spin-speed,3s) linear infinite;}
+    @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);} }
+    .flip-clock{position:absolute; top:-60px; display:none; flex-direction:row; gap:4px; z-index:8;}
+    .digit{width:40px; height:50px; perspective:400px; position:relative;}
+    .card{position:absolute; width:100%; height:50%; overflow:hidden; backface-visibility:hidden; border-radius:4px;}
+    .card.top{top:0; border-bottom:1px solid #222;}
+    .card.bottom{bottom:0; border-top:1px solid #222;}
+    .face{position:absolute; width:100%; height:200%; display:flex; align-items:center; justify-content:center;
+      background:#000; color:#0ff; font-family:'Courier New',monospace; font-size:28px;
     }
-    #toolbar > *:hover {
-      background: #A555D0;
+    .card.top .face{transform-origin:bottom;}
+    .card.bottom .face{transform-origin:top; top:-50%;}
+    .card.top.flip .face{animation:flipTop .4s ease-in forwards;}
+    .card.bottom.flip .face{animation:flipBottom .4s ease-out forwards;}
+    @keyframes flipTop{from{transform:rotateX(0);}to{transform:rotateX(-90deg);} }
+    @keyframes flipBottom{from{transform:rotateX(90deg);}to{transform:rotateX(0);} }
+    #dvdLogo{position:fixed; width:60px; height:60px; display:none; border-radius:8px; z-index:6;}
+    #instructions{position:fixed; bottom:10px; width:100%; text-align:center; font-size:12px;
+      color:rgba(255,255,255,0.8); z-index:3; pointer-events:none;
     }
-    .file-btn {
-      position: relative; overflow: hidden;
-    }
-    .file-btn input[type=file] {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%; opacity: 0;
-      cursor: pointer;
-    }
-    #toolbar input[type=range] {
-      width: 100px; appearance: none; height: 4px;
-      background: #ccc; border-radius: 2px;
-      cursor: pointer; margin: 0;
-    }
-    #toolbar input[type=range]::-webkit-slider-thumb {
-      appearance: none; width: 12px; height: 12px;
-      background: var(--accent); border-radius: 50%;
-      margin-top: -4px;
-      cursor: pointer;
-    }
-
-    /* Main potato container */
-    #container {
-      position: relative;
-      width: 300px; height: 300px;
-      overflow: visible; z-index: 5;
-      display: flex; align-items: center; justify-content: center;
-    }
-    #potato {
-      font-size: 250px;
-      animation: spin var(--spin-speed,3s) linear infinite;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-
-    /* Flip clock */
-    .flip-clock {
-      position: absolute; top: 8px;
-      display: none; flex-direction: row;
-      gap: 4px; z-index: 8;
-    }
-    .digit {
-      width: 40px; height: 50px;
-      perspective: 400px; position: relative;
-    }
-    .card {
-      position: absolute; width: 100%; height: 50%;
-      overflow: hidden; backface-visibility: hidden;
-      border-radius: 4px;
-    }
-    .card.top    { top: 0;    border-bottom: 1px solid #222; }
-    .card.bottom { bottom: 0; border-top:    1px solid #222; }
-    .face {
-      position: absolute; width: 100%; height: 200%;
-      display: flex; align-items: center; justify-content: center;
-      background: #000; color: #0ff;
-      font-family: 'Courier New', monospace; font-size: 28px;
-    }
-    .card.top .face    { transform-origin: bottom; }
-    .card.bottom .face { transform-origin: top; top: -50%; }
-    .card.top.flip    .face { animation: flipTop    0.4s ease-in  forwards; }
-    .card.bottom.flip .face { animation: flipBottom 0.4s ease-out forwards; }
-    @keyframes flipTop    { from { transform: rotateX(0deg);} to { transform: rotateX(-90deg);} }
-    @keyframes flipBottom { from { transform: rotateX(90deg);} to { transform: rotateX(0deg);}  }
-
-    /* Bouncing Logo */
-    #dvdLogo {
-      position: fixed; width: 60px; height: 60px;
-      border-radius: 8px;
-      display: block; /* show default */
-      z-index: 6;
-    }
-
-    /* Exit button */
-    #exitBtn {
-      position: fixed; top: 12px; right: 12px;
-      width: 32px; height: 32px; font-size: 20px;
-      background: var(--accent); color: #fff;
-      border: none; border-radius: 50%;
-      display: none; align-items: center;
-      justify-content: center; cursor: pointer;
-      z-index: 10;
-    }
-
-    /* Instructions—visible normally, hidden in fullscreen */
-    #instructions {
-      position: fixed; bottom: 10px; width: 100%;
-      text-align: center; font-size: 12px;
-      color: rgba(255,255,255,0.8); z-index: 3;
-      pointer-events: none;
-    }
-    :fullscreen #instructions {
-      display: none;
+    :fullscreen #toolbar, :fullscreen #exitBtn{display:none;}
+    :fullscreen #instructions{display:none;}
+    #exitBtn{position:fixed; top:12px; right:12px; width:32px; height:32px;
+      font-size:20px; background:var(--accent); color:#fff; border:none; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;
     }
   </style>
 </head>
-
 <body data-theme="dark">
   <canvas id="particleCanvas"></canvas>
-
-  <!-- Toolbar -->
   <div id="toolbar">
     <button id="themeBtn">Theme</button>
     <button id="fsBtn">Fullscreen</button>
-    <label class="file-btn">
-      Upload Background
-      <input type="file" id="bgInput" accept="image/*"/>
-    </label>
+    <label class="file-btn">Upload Background<input type="file" id="bgInput" accept="image/*"></label>
     <button id="removeBgBtn">Remove BG</button>
     <button id="toggleClockBtn">Flip Clock</button>
-    <label class="file-btn">
-      Upload Bouncing Logo
-      <input type="file" id="dvdInput" accept
-="image/*"/>
-    </label>
+    <label class="file-btn">Upload Bouncing Logo<input type="file" id="dvdInput" accept="image/*"></label>
     <button id="toggleDvdBtn">Off Bouncing Logo</button>
-    <label>
-      Speed
-      <input type="range" id="speedSlider" min="0.5" max="10" step="0.1" value="3"/>
-    </label>
+    <label>Speed<input type="range" id="speedSlider" min="0.5" max="10" step="0.1" value="3"></label>
     <button id="toggleParticlesBtn">Particles On</button>
   </div>
-
-  <!-- Potato + Flip Clock -->
   <div id="container">
     <span id="potato">🥔</span>
     <div class="flip-clock" id="flipClock">
-      <div class="digit"></div>
-      <div class="digit"></div>
-      <div class="digit"></div>
-      <div class="digit"></div>
+      <div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div>
     </div>
   </div>
-
-  <!-- Bouncing Logo -->
-  <img id="dvdLogo"
-       src="https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg"
-       alt="Bouncing Logo"/>
-
-  <!-- Instructions & Exit -->
-  <p id="instructions">
-    Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere and clicking the X button.
-  </p>
+  <img id="dvdLogo" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg" alt="Bouncing Logo">
+  <p id="instructions">Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere and clicking the ✕ button.</p>
   <button id="exitBtn">✕</button>
-
   <script>
     // Particle rain
-    const canvas = document.getElementById('particleCanvas'),
-          ctx    = canvas.getContext('2d');
-    let effects = [], effectsOn = true;
-    function resize() { canvas.width  = innerWidth; canvas.height = innerHeight; }
-    window.addEventListener('resize', resize); resize();
-    function initEffects() {
-      effects = Array.from({length:150}, () => ({
-        x: Math.random()*canvas.width,
-        y: Math.random()*canvas.height,
-        r: Math.random()*3 + 2,
-        s: Math.random() + 0.5
-      }));
+    const canvasEl = document.getElementById('particleCanvas'), ctx = canvasEl.getContext('2d');
+    let particles = [], particlesOn = true;
+    function resizeCanvas(){canvasEl.width = window.innerWidth; canvasEl.height = window.innerHeight;} window.addEventListener('resize', resizeCanvas); resizeCanvas();
+    function initParticles(){particles = Array.from({length:150}, ()=>({x:Math.random()*canvasEl.width,y:Math.random()*canvasEl.height,r:Math.random()*3+2,s:Math.random()+0.5}));}
+    function drawParticles(){ctx.clearRect(0,0,canvasEl.width,canvasEl.height); if(particlesOn){ctx.fillStyle = document.body.dataset.theme==='dark'?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)'; particles.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,2*Math.PI);ctx.fill();p.y+=p.s; if(p.y>canvasEl.height) p.y=0;});} requestAnimationFrame(drawParticles);} initParticles(); drawParticles();// DOM refs
+const body = document.body,
+      themeBtn = document.getElementById('themeBtn'),
+      fsBtn = document.getElementById('fsBtn'),
+      bgInput = document.getElementById('bgInput'),
+      removeBgBtn = document.getElementById('removeBgBtn'),
+      clockBtn = document.getElementById('toggleClockBtn'),
+      dvdInput = document.getElementById('dvdInput'),
+      dvdBtn = document.getElementById('toggleDvdBtn'),
+      particlesBtn = document.getElementById('toggleParticlesBtn'),
+      speedSlider = document.getElementById('speedSlider'),
+      potato = document.getElementById('potato'),
+      flipClock = document.getElementById('flipClock'),
+      digits = flipClock.querySelectorAll('.digit'),
+      dvdLogo = document.getElementById('dvdLogo'),
+      instructions = document.getElementById('instructions'),
+      exitBtn = document.getElementById('exitBtn');
+
+let clockInterval, dvdTimer, lastTime;
+
+// Speed slider logic
+const minV = +speedSlider.min, maxV = +speedSlider.max;
+speedSlider.oninput = () => {
+  const v = +speedSlider.value;
+  const inv = (minV + maxV) - v;
+  potato.style.setProperty('--spin-speed', inv + 's');
+  const pct = ((v - minV)/(maxV - minV))*100;
+  speedSlider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, #ccc ${pct}%, #ccc)`;
+};
+speedSlider.oninput();
+
+// Theme toggle
+themeBtn.onclick = () => body.dataset.theme = body.dataset.theme==='dark'?'light':'dark';
+
+// Fullscreen toggle
+fsBtn.onclick = () => document.documentElement.requestFullscreen();
+
+// BG upload/remove
+bgInput.onchange = e => { const f = e.target.files[0]; if(f) body.style.backgroundImage = `url('${URL.createObjectURL(f)}')`; };
+removeBgBtn.onclick = () => { body.style.backgroundImage=''; bgInput.value=''; };
+
+// Flip clock setup
+digits.forEach(d => { d.innerHTML = `<div class="card top"><div class="face"></div></div><div class="card bottom"><div class="face"></div></div>`; });
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const str = h + m + s;
+  digits.forEach((d,i) => {
+    if(str[i] !== (lastTime||str)[i]){
+      const topF = d.querySelector('.card.top .face');
+      const botF = d.querySelector('.card.bottom .face');
+      topF.textContent = (lastTime||str)[i];
+      botF.textContent = str[i];
+      d.querySelector('.card.top').classList.add('flip');
+      setTimeout(()=>{ d.querySelector('.card.top').classList.remove('flip'); d.querySelector('.card.bottom').classList.add('flip'); }, 200);
+      setTimeout(()=>{ d.querySelector('.card.bottom').classList.remove('flip'); }, 400);
     }
-    function animateEffects() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      if (effectsOn) {
-        ctx.fillStyle = document.body.dataset.theme==='dark'
-          ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
-        effects.forEach(p => {
-          ctx.beginPath();
-          ctx.arc(p.x,p.y,p.r,0,2*Math.PI);
-          ctx.fill();
-          p.y += p.s;
-          if (p.y > canvas.height) p.y = 0;
-        });
-      }
-      requestAnimationFrame(animateEffects);
-    }
-    initEffects(); animateEffects();
+  });
+  lastTime = str;
+}
+clockBtn.onclick = () => {
+  if(flipClock.style.display !== 'flex'){
+    flipClock.style.display = 'flex';
+    // Prefill
+    const now = new Date(), h = String(now.getHours()).padStart(2,'0'), m = String(now.getMinutes()).padStart(2,'0'), s = String(now.getSeconds()).padStart(2,'0');
+    const str = h + m + s;
+    digits.forEach((d,i)=> d.querySelectorAll('.face').forEach(f=> f.textContent = str[i]));
+    lastTime = str;
+    updateClock();
+    clockInterval = setInterval(updateClock, 1000);
+  } else {
+    clearInterval(clockInterval);
+    flipClock.style.display = 'none';
+  }
+};
 
-    // Grab elements
-    const body          = document.body,
-          themeBtn      = document.getElementById('themeBtn'),
-          fsBtn         = document.getElementById('fsBtn'),
-          bgInput       = document.getElementById('bgInput'),
-          removeBgBtn   = document.getElementById('removeBgBtn'),
-          clockBtn      = document.getElementById('toggleClockBtn'),
-          dvdInput      = document.getElementById('dvdInput'),
-          dvdBtn        = document.getElementById('toggleDvdBtn'),
-          particlesBtn  = document.getElementById('toggleParticlesBtn'),
-          speedSlider   = document.getElementById('speedSlider'),
-          potato        = document.getElementById('potato'),
-          flipClock     = document.getElementById('flipClock'),
-          digits        = flipClock.querySelectorAll('.digit'),
-          dvdLogo       = document.getElementById('dvdLogo'),
-          exitBtn       = document.getElementById('exitBtn'),
-          instructions  = document.getElementById('instructions');
-    let clockInt, dvdInt, lastTime, state={x:0,y:0,vx:3,vy:3,hue:0}, exitTO;
+// Bouncing Logo toggle
+dvdBtn.onclick = () => {
+  if(dvdLogo.style.display !== 'block'){
+    // Set default logo if none
+    if(!dvdInput.files.length) dvdLogo.src = 'https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg';
+    dvdBtn.textContent = 'On Bouncing Logo';
+    let x=0,y=0,vx=3,vy=3,hue=0;
+    dvdLogo.style.display = 'block';
+    dvdTimer = setInterval(()=>{
 
-    // Speed slider update (track fill + inverted spin)
-    const [minV,maxV] = [+speedSlider.min, +speedSlider.max];
-    speedSlider.oninput = () => {
-      const v = +speedSlider.value;
-      const inv = (maxV + minV) - v;
-      potato.style.setProperty('--spin-speed', inv + 's');
-      const pct = ((v - minV)/(maxV - minV))*100;
-      speedSlider.style.background = 
-        `linear-gradient(to right,var(--accent) 0%,var(--accent) ${pct}%,
-         #ccc ${pct}%, #ccc)`;
-    };
-    speedSlider.oninput();
+n      const maxX = window.innerWidth - dvdLogo.offsetWidth; n      const maxY = window.innerHeight - dvdLogo.offsetHeight; n      x += vx; y += vy; n      if(x<0||x>maxX){ vx*=-1; hue=(hue+120)%360; } n      if(y<0||y>maxY){ vy*=-1; hue=(hue+120)%360; } n      dvdLogo.style.left=x+'px'; n      dvdLogo.style.top=y+'px'; n      dvdLogo.style.filter=hue-rotate(${hue}deg); n    },16); n  } else { n    clearInterval(dvdTimer); n    dvdLogo.style.display='none'; n    dvdBtn.textContent='Off Bouncing Logo'; n  } n};
 
-    // Theme toggle
-    themeBtn.onclick = () => {
-      body.dataset.theme = body.dataset.theme==='dark' ? 'light' : 'dark';
-    };
-
-    // Fullscreen
-    fsBtn.onclick = () => document.documentElement.requestFullscreen();
-
-    // Background upload/remove
-    bgInput.onchange = e => {
-      const f = e.target.files[0];
-      if (f) body.style.backgroundImage = `url('${URL.createObjectURL(f)}')`;
-    };
-    removeBgBtn.onclick = () => { body.style.backgroundImage=''; bgInput.value=''; };
-
-    // Flip-clock setup
-    digits.forEach(d => {
-      d.innerHTML = `
-        <div class="card top"><div class="face"></div></div>
-        <div class="card bottom"><div class="face"></div></div>`;
-    });
-    function updateClock(){
-      const now = new Date(),
-            h   = String(now.getHours()).padStart(2,'0'),
-            m   = String(now.getMinutes()).padStart(2,'0'),
-            s   = String(now.getSeconds()).padStart(2,'0'),
-            str = h + m + s;
-      digits.forEach((d,i) => {
-        const newD = str[i],
-              oldD = (lastTime||str)[i];
-        if (newD !== oldD) {
-          const topF = d.querySelector('.card.top .face'),
-                botF = d.querySelector('.card.bottom .face');
-          topF.textContent = oldD;
-          botF.textContent = newD;
-          d.querySelector('.card.top').classList.add('flip');
-          setTimeout(()=> {
-            d.querySelector('.card.top').classList.remove('flip');
-            d.querySelector('.card.bottom').classList.add('flip');
-          }, 200);
-          setTimeout(()=> {
-            d.querySelector('.card.bottom').classList.remove('flip');
-          }, 400);
-        }
-      });
-      lastTime = str;
-    }
-    clockBtn.onclick = () => {
-      if (flipClock.style.display !== 'flex') {
-        // Prefill
-        const now = new Date(),
-              h   = String(now.getHours()).padStart(2,'0'),
-              m   = String(now.getMinutes()).padStart(2,'0'),
-              s   = String(now.getSeconds()).padStart(2,'0'),
-              str = h + m + s;
-        digits.forEach((d,i) => {
-          d.querySelectorAll('.face').forEach(f => f.textContent = str[i]);
-        });
-        lastTime = str;
-        flipClock.style.display = 'flex';
-        updateClock();
-        clockInt = setInterval(updateClock,1000);
-      } else {
-        clearInterval(clockInt);
-        flipClock.style.display = 'none';
-      }
-    };
-
-    // Bouncing-logo logic with Key Bounce Fix
-    dvdBtn.textContent = 'Off Bouncing Logo';
-    dvdInput.onchange = e => {
-      const f = e.target.files[0];
-      dvdLogo.src = f
-        ? URL.createObjectURL(f)
-        : 'https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg';
-    };
-    dvdBtn.onclick = () => {
-      if (dvdLogo.style.display !== 'block') {
-        // default logo if none chosen
-        if (!dvdInput.value) {
-          dvdLogo.src = 'https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg';
-        }
-        state = { x:0, y:0, vx:3, vy:3, hue:0 };
-        dvdBtn.textContent = 'On Bouncing Logo';
-        dvdLogo.style.display = 'block';
-        dvdInt = setInterval(()=>{
-          const maxX = innerWidth  - dvdLogo.offsetWidth;
-          const maxY = innerHeight - dvdLogo.offsetHeight;
-          state.x += state.vx; state.y += state.vy;
-          if (state.x < 0 || state.x > maxX) {
-            state.vx *= -1; state.hue = (state.hue + 120) % 360;
-          }
-          if (state.y < 0 || state.y > maxY) {
-            state.vy *= -1; state.hue = (state.hue + 120) % 360;
-          }
-          dvdLogo.style.left   = state.x + 'px';
-          dvdLogo.style.top    = state.y + 'px';
-          dvdLogo.style.filter = `hue-rotate(${state.hue}deg)`;
-        },16);
-      } else {
-        clearInterval(dvdInt);
-        dvdLogo.style.display = 'none';
-        dvdBtn.textContent = 'Off Bouncing Logo';
-      }
-    };
-
-    // Toggle particles
-    particlesBtn.onclick = () => {
-      effectsOn = !effectsOn;
-      particlesBtn.textContent = effectsOn ? 'Particles On' : 'Particles Off';
-    };
-
-    // Exit full-screen behavior
-    document.addEventListener('fullscreenchange', ()=>{
-      if (!document.fullscreenElement) {
-        clearInterval(clockInt);
-        clearInterval(dvdInt);
-        flipClock.style.display = 'none';
-        dvdLogo.style.display   = 'none';
-        exitBtn.style.display   = 'none';
-      }
-    });
-    document.addEventListener('click', ()=>{
-      if (document.fullscreenElement) {
-        exitBtn.style.display = 'flex';
-        clearTimeout(exitTO);
-        exitTO = setTimeout(()=> exitBtn.style.display = 'none', 3000);
-      }
-    });
-    exitBtn.onclick = ()=> document.exitFullscreen();
-  </script>
-</body>
-</html>
