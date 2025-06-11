@@ -5,56 +5,55 @@
   <title>Spinning Potato</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-    :root { --bg-light:#fff; --bg-dark:#121212; --text-light:#000; --text-dark:#eee; --accent:#BB86FC; }
-    [data-theme='light']{background:var(--bg-light); color:var(--text-light);}
-    [data-theme='dark'] {background:var(--bg-dark);  color:var(--text-dark); }
-    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+    :root { --bg-light: #fff; --bg-dark: #121212; --text-light: #000; --text-dark: #eee; --accent: #BB86FC; }
+    [data-theme='light'] { background: var(--bg-light); color: var(--text-light); }
+    [data-theme='dark']  { background: var(--bg-dark);  color: var(--text-dark);  }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      background-size: cover; background-position: center; background-attachment: fixed;
+      font-family: 'Roboto', sans-serif; transition: background 0.3s, color 0.3s;
+    }
+    canvas#particleCanvas { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+    #toolbar { position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-wrap: wrap; gap: 6px;
+      background: rgba(0,0,0,0.5); padding: 8px; border-radius: 12px; z-index:10;
+    }
+    #toolbar > * { font-size: 12px; padding: 8px 10px; background: var(--accent); color: #fff;
+      border: none; border-radius: 12px; cursor: pointer; transition: background 0.2s;
+    }
+    #toolbar > *:hover { background: #A555D0; }
+    .file-btn { position: relative; overflow: hidden; }
+    .file-btn input[type=file] { position: absolute; top: 0; left: 0; width:100%; height:100%; opacity:0; cursor:pointer; }
+    #toolbar input[type=range] { width:100px; appearance:none; height:4px; background:#ccc; border-radius:2px; cursor:pointer; }
+    #toolbar input[type=range]::-webkit-slider-thumb { appearance:none; width:12px; height:12px; border-radius:50%; background: var(--accent); margin-top:-4px; cursor:pointer; }
+    #container { position: relative; width:300px; height:300px; overflow: visible; z-index:5;
       display:flex; align-items:center; justify-content:center;
-      font-family:'Roboto',sans-serif; transition:.3s;
-      background-size:cover; background-position:center; background-attachment:fixed;
     }
-    canvas#particleCanvas{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;}
-    #toolbar{position:fixed; top:12px; left:50%; transform:translateX(-50%);
-      display:flex; flex-wrap:wrap; gap:6px;
-      background:rgba(0,0,0,0.5); padding:8px; border-radius:12px; z-index:10;
-    }
-    #toolbar > *{ font-size:12px; padding:8px 10px;
-      background:var(--accent); color:#fff; border:none; border-radius:12px;
-      cursor:pointer; transition:background .2s;
-    }
-    #toolbar > *:hover{background:#A555D0;}
-    .file-btn{position:relative; overflow:hidden;}
-    .file-btn input[type=file]{position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;}
-    #toolbar input[type=range]{width:100px; appearance:none; height:4px; background:#ccc; border-radius:2px; cursor:pointer;}
-    #toolbar input[type=range]::-webkit-slider-thumb{appearance:none; width:12px; height:12px; border-radius:50%; background:var(--accent); margin-top:-4px; cursor:pointer;}
-    #container{position:relative; width:300px; height:300px; overflow:visible; z-index:5;
-      display:flex; align-items:center; justify-content:center;
-    }
-    #potato{font-size:250px; animation:spin var(--spin-speed,3s) linear infinite;}
-    @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);} }
-    .flip-clock{position:absolute; top:-60px; display:none; flex-direction:row; gap:4px; z-index:8;}
-    .digit{width:40px; height:50px; perspective:400px; position:relative;}
-    .card{position:absolute; width:100%; height:50%; overflow:hidden; backface-visibility:hidden; border-radius:4px;}
-    .card.top{top:0; border-bottom:1px solid #222;}
-    .card.bottom{bottom:0; border-top:1px solid #222;}
-    .face{position:absolute; width:100%; height:200%; display:flex; align-items:center; justify-content:center;
+    #potato { font-size:250px; animation: spin var(--spin-speed,3s) linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .flip-clock { position: absolute; top: -60px; display: none; flex-direction: row; gap:4px; z-index:8; }
+    .digit { width:40px; height:50px; perspective:400px; position:relative; }
+    .card { position:absolute; width:100%; height:50%; overflow:hidden; backface-visibility:hidden; border-radius:4px; }
+    .card.top    { top:0; border-bottom:1px solid #222; }
+    .card.bottom { bottom:0; border-top:1px solid #222; }
+    .face { position:absolute; width:100%; height:200%; display:flex; align-items:center; justify-content:center;
       background:#000; color:#0ff; font-family:'Courier New',monospace; font-size:28px;
     }
-    .card.top .face{transform-origin:bottom;}
-    .card.bottom .face{transform-origin:top; top:-50%;}
-    .card.top.flip .face{animation:flipTop .4s ease-in forwards;}
-    .card.bottom.flip .face{animation:flipBottom .4s ease-out forwards;}
-    @keyframes flipTop{from{transform:rotateX(0);}to{transform:rotateX(-90deg);} }
-    @keyframes flipBottom{from{transform:rotateX(90deg);}to{transform:rotateX(0);} }
-    #dvdLogo{position:fixed; width:60px; height:60px; display:none; border-radius:8px; z-index:6;}
-    #instructions{position:fixed; bottom:10px; width:100%; text-align:center; font-size:12px;
-      color:rgba(255,255,255,0.8); z-index:3; pointer-events:none;
+    .card.top .face    { transform-origin: bottom; }
+    .card.bottom .face { transform-origin: top; top:-50%; }
+    .card.top.flip    .face { animation: flipTop    0.4s ease-in  forwards; }
+    .card.bottom.flip .face { animation: flipBottom 0.4s ease-out forwards; }
+    @keyframes flipTop    { from { transform: rotateX(0deg); } to { transform: rotateX(-90deg); } }
+    @keyframes flipBottom { from { transform: rotateX(90deg); } to { transform: rotateX(0deg); } }
+    #dvdLogo { position: fixed; width:60px; height:60px; display:none; border-radius:8px; z-index:6; }
+    #instructions { position: fixed; bottom:10px; width:100%; text-align:center; font-size:12px;
+      color: rgba(255,255,255,0.8); z-index:3; pointer-events:none;
     }
-    :fullscreen #toolbar, :fullscreen #exitBtn{display:none;}
-    :fullscreen #instructions{display:none;}
-    #exitBtn{position:fixed; top:12px; right:12px; width:32px; height:32px;
-      font-size:20px; background:var(--accent); color:#fff; border:none; border-radius:50%;
-      display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;
+    :fullscreen #toolbar, :fullscreen #exitBtn { display:none; }
+    :fullscreen #instructions { display:none; }
+    #exitBtn { position: fixed; top:12px; right:12px; width:32px; height:32px; font-size:20px;
+      background: var(--accent); color:#fff; border:none; border-radius:50%; display:flex;
+      align-items:center; justify-content:center; cursor:pointer; z-index:10;
     }
   </style>
 </head>
@@ -67,7 +66,7 @@
     <button id="removeBgBtn">Remove BG</button>
     <button id="toggleClockBtn">Flip Clock</button>
     <label class="file-btn">Upload Bouncing Logo<input type="file" id="dvdInput" accept="image/*"></label>
-    <button id="toggleDvdBtn">Off Bouncing Logo</button>
+    <button id="toggleDvdBtn" disabled>Off Bouncing Logo</button>
     <label>Speed<input type="range" id="speedSlider" min="0.5" max="10" step="0.1" value="3"></label>
     <button id="toggleParticlesBtn">Particles On</button>
   </div>
@@ -77,102 +76,109 @@
       <div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div><div class="digit"></div>
     </div>
   </div>
-  <img id="dvdLogo" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg" alt="Bouncing Logo">
-  <p id="instructions">Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere and clicking the ✕ button.</p>
+  <img id="dvdLogo" alt="Bouncing Logo">
+  <p id="instructions">Enter fullscreen to hide controls. Exit fullscreen by clicking anywhere and clicking ✕.</p>
   <button id="exitBtn">✕</button>
   <script>
     // Particle rain
     const canvasEl = document.getElementById('particleCanvas'), ctx = canvasEl.getContext('2d');
-    let particles = [], particlesOn = true;
-    function resizeCanvas(){canvasEl.width = window.innerWidth; canvasEl.height = window.innerHeight;} window.addEventListener('resize', resizeCanvas); resizeCanvas();
-    function initParticles(){particles = Array.from({length:150}, ()=>({x:Math.random()*canvasEl.width,y:Math.random()*canvasEl.height,r:Math.random()*3+2,s:Math.random()+0.5}));}
-    function drawParticles(){ctx.clearRect(0,0,canvasEl.width,canvasEl.height); if(particlesOn){ctx.fillStyle = document.body.dataset.theme==='dark'?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)'; particles.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,2*Math.PI);ctx.fill();p.y+=p.s; if(p.y>canvasEl.height) p.y=0;});} requestAnimationFrame(drawParticles);} initParticles(); drawParticles();// DOM refs
+    let parts = [], partsOn = true;
+    function resize() { canvasEl.width = window.innerWidth; canvasEl.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+    function initParts() { parts = Array.from({length:150},()=>({x:Math.random()*canvasEl.width,y:Math.random()*canvasEl.height,r:Math.random()*3+2,s:Math.random()+0.5})); }
+    function drawParts(){ ctx.clearRect(0,0,canvasEl.width,canvasEl.height); if(partsOn){ ctx.fillStyle = document.body.dataset.theme==='dark'?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)'; parts.forEach(p=>{ ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,2*Math.PI);ctx.fill();p.y+=p.s; if(p.y>canvasEl.height) p.y=0; }); } requestAnimationFrame(drawParts);} initParts(); drawParts();// DOM refs
 const body = document.body,
       themeBtn = document.getElementById('themeBtn'),
       fsBtn = document.getElementById('fsBtn'),
-      bgInput = document.getElementById('bgInput'),
-      removeBgBtn = document.getElementById('removeBgBtn'),
-      clockBtn = document.getElementById('toggleClockBtn'),
-      dvdInput = document.getElementById('dvdInput'),
+      bgIn = document.getElementById('bgInput'),
+      remBg = document.getElementById('removeBgBtn'),
+      clkBtn = document.getElementById('toggleClockBtn'),
+      dvdIn = document.getElementById('dvdInput'),
       dvdBtn = document.getElementById('toggleDvdBtn'),
-      particlesBtn = document.getElementById('toggleParticlesBtn'),
-      speedSlider = document.getElementById('speedSlider'),
+      parBtn = document.getElementById('toggleParticlesBtn'),
+      slider = document.getElementById('speedSlider'),
       potato = document.getElementById('potato'),
       flipClock = document.getElementById('flipClock'),
       digits = flipClock.querySelectorAll('.digit'),
       dvdLogo = document.getElementById('dvdLogo'),
-      instructions = document.getElementById('instructions'),
+      instr = document.getElementById('instructions'),
       exitBtn = document.getElementById('exitBtn');
 
-let clockInterval, dvdTimer, lastTime;
+let clkI, dvdTimer, lastTime;
 
 // Speed slider logic
-const minV = +speedSlider.min, maxV = +speedSlider.max;
-speedSlider.oninput = () => {
-  const v = +speedSlider.value;
-  const inv = (minV + maxV) - v;
-  potato.style.setProperty('--spin-speed', inv + 's');
-  const pct = ((v - minV)/(maxV - minV))*100;
-  speedSlider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, #ccc ${pct}%, #ccc)`;
+const [minV,maxV] = [+slider.min,+slider.max];
+slider.oninput = () => {
+  const v = +slider.value, inv = (minV+maxV)-v;
+  potato.style.setProperty('--spin-speed',inv+'s');
+  const pct = ((v-minV)/(maxV-minV))*100;
+  slider.style.background = `linear-gradient(to right,var(--accent) 0%,var(--accent) ${pct}%,#ccc ${pct}%,#ccc)`;
 };
-speedSlider.oninput();
+slider.oninput();
 
 // Theme toggle
 themeBtn.onclick = () => body.dataset.theme = body.dataset.theme==='dark'?'light':'dark';
-
-// Fullscreen toggle
+// Fullscreen
 fsBtn.onclick = () => document.documentElement.requestFullscreen();
-
 // BG upload/remove
-bgInput.onchange = e => { const f = e.target.files[0]; if(f) body.style.backgroundImage = `url('${URL.createObjectURL(f)}')`; };
-removeBgBtn.onclick = () => { body.style.backgroundImage=''; bgInput.value=''; };
+bgIn.onchange = e=>{ const f=e.target.files[0]; if(f) body.style.backgroundImage=`url('${URL.createObjectURL(f)}')`; };
+remBg.onclick = () => { body.style.backgroundImage=''; bgIn.value=''; };
 
-// Flip clock setup
-digits.forEach(d => { d.innerHTML = `<div class="card top"><div class="face"></div></div><div class="card bottom"><div class="face"></div></div>`; });
-function updateClock() {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2,'0');
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-  const str = h + m + s;
-  digits.forEach((d,i) => {
-    if(str[i] !== (lastTime||str)[i]){
-      const topF = d.querySelector('.card.top .face');
-      const botF = d.querySelector('.card.bottom .face');
-      topF.textContent = (lastTime||str)[i];
-      botF.textContent = str[i];
-      d.querySelector('.card.top').classList.add('flip');
-      setTimeout(()=>{ d.querySelector('.card.top').classList.remove('flip'); d.querySelector('.card.bottom').classList.add('flip'); }, 200);
-      setTimeout(()=>{ d.querySelector('.card.bottom').classList.remove('flip'); }, 400);
-    }
-  });
-  lastTime = str;
-}
-clockBtn.onclick = () => {
-  if(flipClock.style.display !== 'flex'){
-    flipClock.style.display = 'flex';
-    // Prefill
-    const now = new Date(), h = String(now.getHours()).padStart(2,'0'), m = String(now.getMinutes()).padStart(2,'0'), s = String(now.getSeconds()).padStart(2,'0');
-    const str = h + m + s;
-    digits.forEach((d,i)=> d.querySelectorAll('.face').forEach(f=> f.textContent = str[i]));
-    lastTime = str;
-    updateClock();
-    clockInterval = setInterval(updateClock, 1000);
+// Flip clock init
+digits.forEach(d=> d.innerHTML='<div class="card top"><div class="face"></div></div><div class="card bottom"><div class="face"></div></div>');
+function updClk(){ const now=new Date(), h=String(now.getHours()).padStart(2,'0'), m=String(now.getMinutes()).padStart(2,'0'), s=String(now.getSeconds()).padStart(2,'0'), str=h+m+s;
+  digits.forEach((d,i)=>{ const newD=str[i], oldD=(lastTime||str)[i]; if(newD!==oldD){ const topF=d.querySelector('.card.top .face'), botF=d.querySelector('.card.bottom .face'); topF.textContent=oldD; botF.textContent=newD; d.querySelector('.card.top').classList.add('flip'); setTimeout(()=>{ d.querySelector('.card.top').classList.remove('flip'); d.querySelector('.card.bottom').classList.add('flip'); },200); setTimeout(()=>{ d.querySelector('.card.bottom').classList.remove('flip'); },400);} }); lastTime=str; }
+clkBtn.onclick = () => {
+  if(flipClock.style.display!=='flex'){
+    flipClock.style.display='flex'; const now=new Date(), h=String(now.getHours()).padStart(2,'0'), m=String(now.getMinutes()).padStart(2,'0'), s=String(now.getSeconds()).padStart(2,'0'), str=h+m+s;
+    digits.forEach((d,i)=> d.querySelectorAll('.face').forEach(f=>f.textContent=str[i])); lastTime=str;
+    updClk(); clkI=setInterval(updClk,1000);
+  } else { clearInterval(clkI); flipClock.style.display='none'; }
+};
+
+// Bouncing logo only enabled if file selected
+dvdBtn.disabled = true;
+dvdIn.onchange = () => {
+  if (dvdIn.files && dvdIn.files.length>0) {
+    dvdBtn.disabled = false;
+    dvdBtn.textContent = 'Off Bouncing Logo';
   } else {
-    clearInterval(clockInterval);
-    flipClock.style.display = 'none';
+    dvdBtn.disabled = true;
+    dvdBtn.textContent = 'Off Bouncing Logo';
+  }
+};
+dvdBtn.onclick = () => {
+  if(dvdLogo.style.display!=='block'){
+    // Only show if a file is selected
+    if(dvdIn.files && dvdIn.files.length>0) {
+      let x=0,y=0,vx=3,vy=3,hue=0;
+      dvdLogo.src = URL.createObjectURL(dvdIn.files[0]);
+      dvdBtn.textContent='On Bouncing Logo';
+      dvdLogo.style.display='block';
+      dvdTimer = setInterval(()=>{
+        const maxX=innerWidth-dvdLogo.offsetWidth, maxY=innerHeight-dvdLogo.offsetHeight;
+        x+=vx; y+=vy;
+        if(x<0||x>maxX){ vx*=-1; hue=(hue+120)%360; }
+        if(y<0||y>maxY){ vy*=-1; hue=(hue+120)%360; }
+        dvdLogo.style.left=x+'px'; dvdLogo.style.top=y+'px'; dvdLogo.style.filter=`hue-rotate(${hue}deg)`;
+      },16);
+    }
+  } else {
+    clearInterval(dvdTimer); dvdLogo.style.display='none'; dvdBtn.textContent='Off Bouncing Logo';
   }
 };
 
-// Bouncing Logo toggle
-dvdBtn.onclick = () => {
-  if(dvdLogo.style.display !== 'block'){
-    // Set default logo if none
-    if(!dvdInput.files.length) dvdLogo.src = 'https://upload.wikimedia.org/wikipedia/commons/3/3c/DVD_logo.svg';
-    dvdBtn.textContent = 'On Bouncing Logo';
-    let x=0,y=0,vx=3,vy=3,hue=0;
-    dvdLogo.style.display = 'block';
-    dvdTimer = setInterval(()=>{
+// Particles toggle
+parBtn.onclick = () => { partsOn=!partsOn; parBtn.textContent=partsOn?'Particles On':'Particles Off'; };
 
-n      const maxX = window.innerWidth - dvdLogo.offsetWidth; n      const maxY = window.innerHeight - dvdLogo.offsetHeight; n      x += vx; y += vy; n      if(x<0||x>maxX){ vx*=-1; hue=(hue+120)%360; } n      if(y<0||y>maxY){ vy*=-1; hue=(hue+120)%360; } n      dvdLogo.style.left=x+'px'; n      dvdLogo.style.top=y+'px'; n      dvdLogo.style.filter=hue-rotate(${hue}deg); n    },16); n  } else { n    clearInterval(dvdTimer); n    dvdLogo.style.display='none'; n    dvdBtn.textContent='Off Bouncing Logo'; n  } n};
+// Fullscreen change
+document.addEventListener('fullscreenchange',()=>{
+  if(document.fullscreenElement){ exitBtn.style.display='flex'; setTimeout(()=>exitBtn.style.display='none',3000); instr.style.display='none'; }
+  else { clearInterval(clkI); clearInterval(dvdTimer); flipClock.style.display='none'; dvdLogo.style.display='none'; instr.style.display='block'; exitBtn.style.display='none'; }
+});
 
+exitBtn.onclick = ()=> document.exitFullscreen();
+
+  </script>
+</body>
+</html>
